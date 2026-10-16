@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FocusGuard</string>
+    <string name="accessibility_service_label">FocusGuard App Blocker</string>
+    <string name="accessibility_service_description">FocusGuard uses this service to detect when a blocked app opens and send you back to the home screen during blocked times. It does not collect or transmit any of your data.</string>
+</resources>
