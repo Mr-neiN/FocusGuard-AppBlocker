@@ -299,6 +299,38 @@ class BlockConfigTest {
     }
 
     @Test
+    fun widgetScheduleToggleFlipsOnlyTheScheduleItWasGiven() {
+        val bedtime = Schedule(id = 18, name = "Bedtime", apps = listOf(app))
+        val work = Schedule(
+            id = 19,
+            name = "Work",
+            apps = listOf(app),
+            startMinutes = 9 * 60,
+            endMinutes = 10 * 60,
+        )
+        val config = BlockConfig(schedules = listOf(bedtime, work))
+        assertEquals(bedtime.id, config.primarySchedule()?.id)
+
+        val paused = config.toggleSchedule(bedtime.id)
+        assertFalse(paused.schedules.single { it.id == bedtime.id }.enabled)
+        assertTrue(paused.schedules.single { it.id == work.id }.enabled)
+        assertFalse(paused.isAppBlocked(app, dateFor(3, 22)))
+        assertTrue(paused.toggleSchedule(bedtime.id).isAppBlocked(app, dateFor(3, 22)))
+        assertFalse(paused.toggleSchedule(9999).schedules.single { it.id == bedtime.id }.enabled)
+    }
+
+    @Test
+    fun widgetGeneralToggleFlipsOnlyTheGeneralBlock() {
+        val config = BlockConfig(generalEnabled = false, generalApps = listOf(app))
+        val enabled = config.toggleGeneral()
+        assertTrue(enabled.generalEnabled)
+        assertTrue(enabled.isAppBlocked(app, dateFor(3, 12)))
+        assertTrue(enabled.schedulesEnabled)
+        assertFalse(enabled.toggleGeneral().generalEnabled)
+        assertFalse(enabled.toggleGeneral().isAppBlocked(app, dateFor(3, 12)))
+    }
+
+    @Test
     fun legacyConfigKeepsSchedulesEnabled() {
         val decoded = BlockStore.decode(
             """{"schedules":[{"id":17,"apps":["$app"],"startMinutes":540,"endMinutes":600}]}"""

@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.view.View
 import android.widget.RemoteViews
 import com.focusguard.blocker.BlockConfig
 import com.focusguard.blocker.BlockRepo
@@ -19,10 +21,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * Home-screen widget for the schedule master switch.
+ * Home-screen widget with one switch per rule group.
  *
- * One tap flips [BlockConfig.schedulesEnabled]. Per-schedule switches, the general block and the
- * overall blocking switch keep their own state. Tapping the card itself opens the app.
+ * - The master pill flips [BlockConfig.schedulesEnabled]: every schedule pauses, while the general
+ *   block and the overall blocking switch keep their own state.
+ * - The schedule row flips the own switch of the schedule at the top of the Schedules list
+ *   ([BlockConfig.primarySchedule]).
+ * - The general row flips [BlockConfig.generalEnabled].
+ *
+ * Tapping the card itself opens the app.
  */
 class ScheduleWidgetProvider : AppWidgetProvider() {
 
@@ -46,7 +53,14 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION_TOGGLE_SCHEDULES) {
+        val scheduleId = intent.getLongExtra(EXTRA_SCHEDULE_ID, NO_SCHEDULE_ID)
+        val transform: ((BlockConfig) -> BlockConfig)? = when (intent.action) {
+            ACTION_TOGGLE_SCHEDULES -> { config -> config.copy(schedulesEnabled = !config.schedulesEnabled) }
+            ACTION_TOGGLE_SCHEDULE -> { config -> config.toggleSchedule(scheduleId) }
+            ACTION_TOGGLE_GENERAL -> { config -> config.toggleGeneral() }
+            else -> null
+        }
+        if (transform == null) {
             super.onReceive(context, intent)
             return
         }
@@ -55,7 +69,7 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
         scope.launch {
             try {
                 // BlockRepo.update re-renders the widget once the new value is stored.
-                BlockRepo(appContext).update { it.copy(schedulesEnabled = !it.schedulesEnabled) }
+                BlockRepo(appContext).update(transform)
             } finally {
                 pending.finish()
             }
@@ -64,9 +78,16 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_TOGGLE_SCHEDULES = "com.focusguard.blocker.action.TOGGLE_SCHEDULES"
+        const val ACTION_TOGGLE_SCHEDULE = "com.focusguard.blocker.action.TOGGLE_SCHEDULE"
+        const val ACTION_TOGGLE_GENERAL = "com.focusguard.blocker.action.TOGGLE_GENERAL"
 
-        private const val REQUEST_TOGGLE = 1
+        private const val EXTRA_SCHEDULE_ID = "com.focusguard.blocker.extra.SCHEDULE_ID"
+        private const val NO_SCHEDULE_ID = -1L
+
+        private const val REQUEST_TOGGLE_SCHEDULES = 1
         private const val REQUEST_OPEN_APP = 2
+        private const val REQUEST_TOGGLE_GENERAL = 3
+        private const val REQUEST_TOGGLE_SCHEDULE = 4
 
         // Widget work is short and rare, so one small background scope is enough.
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -93,6 +114,7 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
             val total = config.schedules.size
             val active = config.schedules.count { it.enabled }
             val schedulesOn = config.schedulesEnabled
+            val topSchedule = config.primarySchedule()
 
             val status = context.getString(
                 when {
@@ -111,6 +133,8 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_schedule)
             views.setTextViewText(R.id.widget_status, status)
             views.setTextViewText(R.id.widget_detail, detail)
+
+            // Master switch for every schedule.
             views.setTextViewText(
                 R.id.widget_toggle,
                 context.getString(
@@ -122,15 +146,70 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
                 "setBackgroundResource",
                 if (schedulesOn) R.drawable.widget_toggle_pause else R.drawable.widget_toggle_resume,
             )
-            views.setOnClickPendingIntent(R.id.widget_toggle, toggleIntent(context))
+            views.setOnClickPendingIntent(R.id.widget_toggle, toggleSchedulesIntent(context))
+            views.setOnClickPendingIntent(R.id.widget_master_row, toggleSchedulesIntent(context))
+
+            // Own switch of the schedule at the top of the list.
+            if (topSchedule == null) {
+                views.setViewVisibility(R.id.widget_schedule_row, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_schedule_row, View.VISIBLE)
+                views.setTextViewText(
+                    R.id.widget_schedule_name,
+                    topSchedule.name.ifBlank { context.getString(R.string.widget_schedule_unnamed) },
+                )
+                applyPill(context, views, R.id.widget_schedule_pill, topSchedule.enabled)
+                views.setOnClickPendingIntent(
+                    R.id.widget_schedule_row,
+                    toggleScheduleIntent(context, topSchedule.id),
+                )
+            }
+
+            // General block switch.
+            applyPill(context, views, R.id.widget_general_pill, config.generalEnabled)
+            views.setOnClickPendingIntent(R.id.widget_general_row, toggleGeneralIntent(context))
+
             views.setOnClickPendingIntent(R.id.widget_root, openAppIntent(context))
             return views
         }
 
-        private fun toggleIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
+        private fun applyPill(context: Context, views: RemoteViews, viewId: Int, on: Boolean) {
+            views.setTextViewText(
+                viewId,
+                context.getString(if (on) R.string.widget_state_on else R.string.widget_state_off),
+            )
+            views.setInt(
+                viewId,
+                "setBackgroundResource",
+                if (on) R.drawable.widget_pill_on else R.drawable.widget_pill_off,
+            )
+        }
+
+        private fun actionIntent(context: Context, action: String): Intent =
+            Intent(context, ScheduleWidgetProvider::class.java).setAction(action)
+
+        private fun toggleSchedulesIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
             context,
-            REQUEST_TOGGLE,
-            Intent(context, ScheduleWidgetProvider::class.java).setAction(ACTION_TOGGLE_SCHEDULES),
+            REQUEST_TOGGLE_SCHEDULES,
+            actionIntent(context, ACTION_TOGGLE_SCHEDULES),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        /** The data URI keeps one pending intent per schedule id, so the click follows the top row. */
+        private fun toggleScheduleIntent(context: Context, scheduleId: Long): PendingIntent =
+            PendingIntent.getBroadcast(
+                context,
+                REQUEST_TOGGLE_SCHEDULE,
+                actionIntent(context, ACTION_TOGGLE_SCHEDULE)
+                    .setData(Uri.parse("focusguard://widget/schedule/$scheduleId"))
+                    .putExtra(EXTRA_SCHEDULE_ID, scheduleId),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        private fun toggleGeneralIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
+            context,
+            REQUEST_TOGGLE_GENERAL,
+            actionIntent(context, ACTION_TOGGLE_GENERAL),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 

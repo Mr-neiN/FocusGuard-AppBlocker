@@ -4,7 +4,7 @@
     <string name="accessibility_service_label">FocusGuard App Blocker</string>
     <string name="accessibility_service_description">FocusGuard uses this service to detect when a blocked app opens and send you back to the home screen during blocked times. It does not collect or transmit any of your data.</string>
     <string name="widget_schedule_label">FocusGuard schedules</string>
-    <string name="widget_schedule_description">Pause or resume your schedules with one tap.</string>
+    <string name="widget_schedule_description">Switch all schedules, the top schedule or the general block on and off.</string>
     <string name="widget_schedule_title">FOCUSGUARD</string>
     <string name="widget_schedule_on">Schedules on</string>
     <string name="widget_schedule_paused">Schedules paused</string>
@@ -15,4 +15,9 @@
     <string name="widget_schedule_blocking_paused">Blocking paused in app</string>
     <string name="widget_schedule_pause">Pause</string>
     <string name="widget_schedule_resume">Resume</string>
+    <string name="widget_all_schedules">All schedules</string>
+    <string name="widget_schedule_unnamed">Untitled schedule</string>
+    <string name="widget_general_block">General block</string>
+    <string name="widget_state_on">On</string>
+    <string name="widget_state_off">Off</string>
 </resources>

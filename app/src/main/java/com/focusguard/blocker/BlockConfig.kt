@@ -90,6 +90,19 @@ data class BlockConfig(
     fun resolvedApps(schedule: Schedule): List<String> =
         savedAppLists.firstOrNull { it.id == schedule.savedListId }?.apps ?: schedule.apps
 
+    /** The schedule at the top of the Schedules list; the home-screen widget switches this one. */
+    fun primarySchedule(): Schedule? = schedules.firstOrNull()
+
+    /** Flips one schedule's own switch and leaves every other rule alone. */
+    fun toggleSchedule(scheduleId: Long): BlockConfig = copy(
+        schedules = schedules.map { schedule ->
+            if (schedule.id == scheduleId) schedule.copy(enabled = !schedule.enabled) else schedule
+        }
+    )
+
+    /** Flips the general block switch. */
+    fun toggleGeneral(): BlockConfig = copy(generalEnabled = !generalEnabled)
+
     fun linkGeneralAppList(listId: String?): BlockConfig {
         val list = savedAppLists.firstOrNull { it.id == listId }
         return if (listId == null) copy(generalApps = resolvedGeneralApps(), generalSavedListId = null)

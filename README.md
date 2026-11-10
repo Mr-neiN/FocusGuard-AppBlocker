@@ -5,7 +5,8 @@ FocusGuard lets you pick apps on your Android phone and block access to them:
 - **General block** — choose between **Block-list** (only checked apps are blocked all day) and **Allow-list** (checked apps are allowed; all other eligible user-installed apps are blocked all day). Turn General block off to pause that mode.
 - **Schedules** — choose either **Block-list** (only checked apps are blocked) or **Allow-list** (checked apps are allowed while other eligible user-installed apps are blocked), active only during the chosen time window (e.g. 22:00–06:00, overnight supported) and weekdays (Mon–Sun; select none for "every day").
 - **Home-screen widget** — add the **FocusGuard schedules** widget to your home screen to pause
-  or resume every schedule with one tap. The Schedules switch on Home mirrors it.
+  or resume every schedule with one tap, switch the schedule at the top of the Schedules list, or
+  switch the general block. The Schedules switch on Home mirrors the master switch.
 - **Saved app lists** — name and save a selection once, then link the same list to General Block and any schedules. Editing apps in a linked rule updates the shared list everywhere; unlinking or deleting a list preserves each rule's current app selection.
 - Android/system-integrated apps are hidden from the picker and excluded from blocking, including preinstalled apps that have been updated.
 - A master switch pauses/resumes everything at once.
@@ -43,7 +44,7 @@ For a step-by-step phone verification plan, follow [ON_DEVICE_TEST_CHECKLIST.md]
    - set "All day" or start/end times (overnight windows like 22:00–06:00 work),
    - tap the Mon–Sun chips to choose days (none selected = every day).
 4. Tap **Enable in Settings** on the Home tab and enable **FocusGuard App Blocker** in Android's Accessibility settings. Without this step nothing is enforced.
-5. Optionally long-press your home screen, open **Widgets**, and add **FocusGuard schedules** to turn all schedules on or off from the launcher.
+5. Optionally long-press your home screen, open **Widgets**, and add **FocusGuard schedules** to switch all schedules, the top schedule or the general block on or off from the launcher.
 
 ## Tips for reliable blocking
 
@@ -69,5 +70,5 @@ app/src/main/java/com/focusguard/blocker/
     GeneralAppsScreen.kt           # searchable installed-app picker for the general block
     Common.kt                      # shared helpers: app loading, time/day formatting, dialogs
   widget/
-    ScheduleWidgetProvider.kt      # home-screen widget: one-tap schedule master switch
+    ScheduleWidgetProvider.kt      # home-screen widget: switches for all schedules, the top schedule and the general block
 ```

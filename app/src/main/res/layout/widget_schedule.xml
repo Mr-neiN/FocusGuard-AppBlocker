@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_schedule_background"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="14dp">
 
     <TextView
         android:id="@+id/widget_title"
@@ -22,11 +22,11 @@
         android:id="@+id/widget_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4dp"
         android:maxLines="1"
         android:text="@string/widget_schedule_on"
         android:textColor="#FFFFFFFF"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <TextView
@@ -37,20 +37,107 @@
         android:maxLines="2"
         android:text="@string/widget_schedule_no_schedules"
         android:textColor="#B3FFFFFF"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 
-    <TextView
-        android:id="@+id/widget_toggle"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/widget_master_row"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/widget_toggle_pause"
-        android:paddingStart="18dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="18dp"
-        android:paddingBottom="8dp"
-        android:text="@string/widget_schedule_pause"
-        android:textColor="#FFFFFFFF"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/widget_all_schedules"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/widget_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_toggle_pause"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="6dp"
+            android:text="@string/widget_schedule_pause"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_schedule_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/widget_schedule_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/widget_schedule_unnamed"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/widget_schedule_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/widget_pill_on"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp"
+            android:text="@string/widget_state_on"
+            android:textColor="#FFFFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_general_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/widget_general_block"
+            android:textColor="#B3FFFFFF"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/widget_general_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/widget_pill_off"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp"
+            android:text="@string/widget_state_off"
+            android:textColor="#FFFFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 </LinearLayout>
