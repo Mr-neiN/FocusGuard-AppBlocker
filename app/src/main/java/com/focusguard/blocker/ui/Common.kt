@@ -157,6 +157,79 @@ fun daysLabel(days: Set<Int>): String = when {
     else -> dayLabels.filterIndexed { i, _ -> (i + 1) in days }.joinToString(", ")
 }
 
+@Composable
+fun AppPickerDialog(
+    apps: List<AppEntry>,
+    selected: Set<String>,
+    onToggle: (String) -> Unit,
+    onDone: () -> Unit,
+) {
+    var query by remember { mutableStateOf("") }
+    Dialog(
+        onDismissRequest = onDone,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Column(
+                Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Choose apps",
+                        Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Text("${selected.size} selected", style = MaterialTheme.typography.bodySmall)
+                }
+
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Search apps") },
+                    singleLine = true
+                )
+
+                val q = query.trim().lowercase()
+                val filtered = if (q.isEmpty()) apps
+                else apps.filter { it.label.lowercase().contains(q) || it.pkg.lowercase().contains(q) }
+
+                if (filtered.isEmpty()) {
+                    Text("No eligible user apps found", style = MaterialTheme.typography.bodySmall)
+                } else {
+                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp)) {
+                        items(filtered, key = { it.pkg }) { entry ->
+                            Row(
+                                Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(entry.label, style = MaterialTheme.typography.bodyLarge)
+                                    Text(entry.pkg, style = MaterialTheme.typography.bodySmall)
+                                }
+                                Checkbox(
+                                    checked = entry.pkg in selected,
+                                    onCheckedChange = { onToggle(entry.pkg) }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDone) { Text("Done") }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(

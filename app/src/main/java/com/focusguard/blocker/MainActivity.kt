@@ -91,6 +91,6 @@ fun AppRoot() {
                     else -> GeneralAppsScreen(config = config, repo = repo, scope = scope)
                 }
             }
-        )
+        }
     }
 }
