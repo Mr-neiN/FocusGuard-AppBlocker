@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.focusguard.blocker.widget.ScheduleWidgetProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -54,6 +55,8 @@ data class BlockConfig(
     val generalApps: List<String> = emptyList(),
     /** False = block selected apps; true = allow selected apps and block other eligible apps. */
     val generalAllowSelected: Boolean = false,
+    /** Master switch for every schedule; the home-screen widget flips it. */
+    val schedulesEnabled: Boolean = true,
     val schedules: List<Schedule> = emptyList(),
     val savedAppLists: List<SavedAppList> = emptyList(),
     /** ID of the shared list used for General Block; [generalApps] is a fallback snapshot. */
@@ -71,6 +74,7 @@ data class BlockConfig(
             if (generalAllowSelected && packageName !in apps) return true
             if (!generalAllowSelected && packageName in apps) return true
         }
+        if (!schedulesEnabled) return false
         return schedules.any { schedule ->
             val apps = resolvedApps(schedule)
             schedule.enabled &&
@@ -201,5 +205,7 @@ class BlockRepo(private val context: Context) {
             val current = BlockStore.decode(prefs[BlockStore.KEY])
             prefs[BlockStore.KEY] = BlockStore.json.encodeToString(BlockConfig.serializer(), transform(current))
         }
+        // Keep the home-screen widget in sync with changes made in the app.
+        ScheduleWidgetProvider.refresh(context)
     }
 }

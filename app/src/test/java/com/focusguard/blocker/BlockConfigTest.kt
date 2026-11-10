@@ -280,4 +280,30 @@ class BlockConfigTest {
         assertFalse(config.isAppBlocked(app, dateFor(3, 22)))
         assertFalse(config.isAppBlocked("com.example.other", dateFor(3, 22)))
     }
+
+    @Test
+    fun schedulesSwitchPausesEveryScheduleButNotTheGeneralBlock() {
+        val always = "com.example.always"
+        val schedule = Schedule(id = 16, apps = listOf(app), startMinutes = 9 * 60, endMinutes = 10 * 60)
+        val config = BlockConfig(
+            generalEnabled = true,
+            generalApps = listOf(always),
+            schedules = listOf(schedule),
+        )
+        assertTrue(config.isAppBlocked(app, dateFor(3, 9, 30)))
+
+        val paused = config.copy(schedulesEnabled = false)
+        assertFalse(paused.isAppBlocked(app, dateFor(3, 9, 30)))
+        assertTrue(paused.isAppBlocked(always, dateFor(3, 12)))
+        assertTrue(paused.copy(schedulesEnabled = true).isAppBlocked(app, dateFor(3, 9, 30)))
+    }
+
+    @Test
+    fun legacyConfigKeepsSchedulesEnabled() {
+        val decoded = BlockStore.decode(
+            """{"schedules":[{"id":17,"apps":["$app"],"startMinutes":540,"endMinutes":600}]}"""
+        )
+        assertTrue(decoded.schedulesEnabled)
+        assertTrue(decoded.isAppBlocked(app, dateFor(3, 9, 30)))
+    }
 }

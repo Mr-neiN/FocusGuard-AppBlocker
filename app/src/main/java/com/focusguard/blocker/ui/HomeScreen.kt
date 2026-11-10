@@ -132,18 +132,32 @@ fun HomeScreen(
             }
         }
 
-        // Schedule summary
+        // Schedule summary + schedule master switch (same switch as the home-screen widget)
         val activeSchedules = config.schedules.count { it.enabled }
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Schedules", style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Schedules", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                    Switch(
+                        checked = config.schedulesEnabled,
+                        onCheckedChange = { v -> scope.launch { repo.update { it.copy(schedulesEnabled = v) } } }
+                    )
+                }
                 Text(
-                    if (activeSchedules == 0)
-                        "No schedules yet. Create one to block apps during certain hours or on certain days."
-                    else "$activeSchedules active schedule(s).",
+                    when {
+                        !config.schedulesEnabled ->
+                            "All schedules are paused. The general block is unaffected."
+                        activeSchedules == 0 ->
+                            "No schedules yet. Create one to block apps during certain hours or on certain days."
+                        else -> "$activeSchedules active schedule(s)."
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
                 OutlinedButton(onOpenSchedules) { Text("Manage schedules") }
+                Text(
+                    "Add the FocusGuard widget to your home screen to flip this without opening the app.",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
 
