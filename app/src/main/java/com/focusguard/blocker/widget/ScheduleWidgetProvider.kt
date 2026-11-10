@@ -116,23 +116,25 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
             val schedulesOn = config.schedulesEnabled
             val topSchedule = config.primarySchedule()
 
-            val status = context.getString(
-                when {
-                    !schedulesOn -> R.string.widget_schedule_paused
-                    total == 0 -> R.string.widget_schedule_empty
-                    else -> R.string.widget_schedule_on
-                }
-            )
-            val detail = when {
+            val status = when {
+                total == 0 -> context.getString(R.string.widget_schedule_empty)
+                schedulesOn -> context.getString(R.string.widget_schedule_status_on, active, total)
+                else -> context.getString(R.string.widget_schedule_status_paused, active, total)
+            }
+            // The counts live in the status line, so the hint stays empty whenever it has nothing to add.
+            val hint = when {
                 total == 0 -> context.getString(R.string.widget_schedule_no_schedules)
-                schedulesOn -> context.getString(R.string.widget_schedule_counts, active, total)
-                else -> context.getString(R.string.widget_schedule_counts_paused, active, total)
-            } + if (config.masterEnabled) "" else
-                " • " + context.getString(R.string.widget_schedule_blocking_paused)
+                !config.masterEnabled -> context.getString(R.string.widget_schedule_blocking_paused)
+                else -> null
+            }
 
             val views = RemoteViews(context.packageName, R.layout.widget_schedule)
             views.setTextViewText(R.id.widget_status, status)
-            views.setTextViewText(R.id.widget_detail, detail)
+            views.setTextViewText(R.id.widget_detail, hint.orEmpty())
+            views.setViewVisibility(
+                R.id.widget_detail,
+                if (hint == null) View.GONE else View.VISIBLE,
+            )
 
             // Master switch for every schedule.
             views.setTextViewText(

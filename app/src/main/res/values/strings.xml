@@ -10,8 +10,8 @@
     <string name="widget_schedule_paused">Schedules paused</string>
     <string name="widget_schedule_empty">No schedules yet</string>
     <string name="widget_schedule_no_schedules">Add a schedule in the FocusGuard app</string>
-    <string name="widget_schedule_counts">%1$d of %2$d schedules active</string>
-    <string name="widget_schedule_counts_paused">%1$d of %2$d schedules paused</string>
+    <string name="widget_schedule_status_on">Schedules on • %1$d of %2$d active</string>
+    <string name="widget_schedule_status_paused">Schedules paused • %1$d of %2$d paused</string>
     <string name="widget_schedule_blocking_paused">Blocking paused in app</string>
     <string name="widget_schedule_pause">Pause</string>
     <string name="widget_schedule_resume">Resume</string>
